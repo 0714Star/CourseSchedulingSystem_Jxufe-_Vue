@@ -48,6 +48,8 @@ requestHelper.interceptors.response.use(
            router.push(myConst.myroutes.LOGIN)
         }else if(res.code =='404'){
             router.push(myConst.myroutes.noFound)
+        }else if(res.code =='500'){
+            alert(res.message)
         }
         return res;
     },

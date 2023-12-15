@@ -1,108 +1,139 @@
 <template>
 <div>
-<!--  上传区域 action="http://localhost:8080/course/import"       :action="$baseUrl+'/course/import'"  -->
-  <el-upload
-      :action="this.$baseUrl+'/course/import'"
-      :headers="{token:user.token}"
-      :on-exceed="this.load"
-      :show-file-list="false"
-      :on-success="handleAvatarSuccess"
-      >
-    <el-button size="small" type="primary">点击上传课程信息</el-button>
-    <div slot="tip" class="el-upload__tip">请上传excel文件，不能超过1024MB</div>
-  </el-upload>
 <!--  表单显示  -->
-  <el-table :data="tableData"  stripe>
-    <el-table-column type="selection"></el-table-column>
-    <!--    课程编号	 -->
-    <el-table-column prop="cid" label="课程编号" ></el-table-column>
-    <!--    课程容量	-->
-    <el-table-column prop="ccapacity" label="课程容量" ></el-table-column>
-    <!--    学时	-->
-    <el-table-column prop="chours" label="学时" ></el-table-column>
+  <el-table :data="showTableData"  stripe>
+<!--    <el-table-column type="selection"></el-table-column>-->
+    <!--    课程班编号	 -->
+    <el-table-column prop="class_ID" label="课程班编号" ></el-table-column>
     <!--    名称	-->
-    <el-table-column prop="cname" label="名称" ></el-table-column>
-    <!--    类型	-->
-    <el-table-column prop="ctype" label="类型"></el-table-column>
-    <!--    学分-->
-    <el-table-column prop="ccredit" label="学分" ></el-table-column>
+    <el-table-column prop="name" label="课程班名" ></el-table-column>
+    <!--    课程编号	 -->
+    <el-table-column prop="les_ID" label="课程编号" ></el-table-column>
+    <!--    学时	-->
+    <el-table-column prop="week_class_hour" label="学时" ></el-table-column>
+    <el-table-column filter-placement=""></el-table-column>
     <!--    操作-->
         <el-table-column label="操作">
           <template v-slot="scope">
-            <el-button c_type="primary" plain size="small" @click="handleEdit(scope.row)">编辑</el-button>
-            <el-button c_type="danger" plain size="small" @click="deleteItem(scope.row.cid)">删除</el-button>
+            <el-button c_type="primary" plain size="small" @click="showCourseStudents(scope.row)">查看课程学生</el-button>
           </template>
         </el-table-column>
   </el-table>
-<!--  编辑修改信息弹窗 ，请传递课程信息在 handleEdit函数中传递 数据 和 提交地址 -->
-  <EditData ref="EditData"  @update:table="this.load"   :visibleEdit="isOpenEidt" title_="课程" :listTitle="{
-    cid:'课程编号',
-    ccapacity:'课程容量',
-    chours:'学时',
-    cname:'名称',
-    ctype:'类型',
-    ccredit:'学分'
-  }"></EditData>
+
+<!--  分页器   -->
+  <page-helper ref="pageHelper" :tableData_="showTableData"  @update:tableItem="updateshowList"></page-helper>
+
+
+  <el-dialog
+      title="课程学生列表"
+      :visible.sync = "isDialogVisiable"
+      >
+
+<!--    <el-card style="width: 100%;height: 300px">-->
+<!--展示学生列表  一级 -> 学生列表信息-->
+      <el-table :data = "courseStudentLists">
+<!--        姓名-->
+        <el-table-column prop="name" label="姓名" ></el-table-column>
+        <el-table-column prop="default_class_ID" label="行政班" ></el-table-column>
+        <el-table-column prop="stu_number" label="学号" ></el-table-column>
+        <el-table-column prop="major" label="专业" ></el-table-column>
+        <el-table-column label="查看课表" >
+          <template  v-slot="scope">
+            <el-button plain size="medium" type="primary" @click="showStudentCourseTable(scope.row)">查看课表</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+<!--    </el-card>-->
+
+<!--    二级选中的学生课表  -->
+    <el-dialog
+    width="50%"
+    :visible.sync = "isDialogStuCourseVisiable"
+    append-to-body>
+    <template>
+      <course-table :courseData = "dialogStuCourseData"></course-table>
+    </template>
+    </el-dialog>
+  </el-dialog>
 </div>
 </template>
 
 <script>
 import requestHelper from "@/utils/requestHelper";
-import EditData from "@/components/Manage/Data/EditData.vue";
-import myConst from "@/utils/myConst";
+import PageHelper from "@/components/Manage/UtilsComponent/PageHelper.vue";
+import CourseTable from "@/components/Manage/Data/CourseTable.vue";
+import transStu from "@/utils/CourseTableTrans/transStu";
 
 export default {
-  components: {EditData},
-  c_name: "CourseData",
+  components: {CourseTable, PageHelper},
+  name: "CourseData",
   methods: {
-    handleAvatarSuccess(){
-      this.load();
-      this.$message({type:"success" , message:"上传成功！"})
-    },
+    /**
+     * 从数据库获取所有信息
+     */
     load(){
-      console.log("load!!")
-      requestHelper.get('/course/all').then(res=>{
+      requestHelper.get('/class/all').then(res=>{
         if(res.code == '200'){
-          this.tableData = res.data;
-          console.log("update!!")
+          let data =res.data
+
+          this.tableData = data.map(courseClass =>{
+            let mapKeys = Object.keys(courseClass)
+            const tempArray ={}
+            mapKeys.forEach(key=>{
+              let value = courseClass[key]
+              tempArray[key] = (value)
+            })
+            return tempArray
+          })
+          this.$refs.pageHelper.tableData_ = this.tableData
+          this.$refs.pageHelper.load()
+
+          console.log("TableDATA:",this.tableData)
         }
       })
     },
-    handleEdit(row){
-      this.isOpenEidt = true;
-      this.$refs.EditData.openDialog(row,"/course/update"); //开启弹窗
-    },
-    //删除一条
-    deleteItem(cid){ //根据id删除信息
-      this.$confirm('确认删除该信息？', '确认删除', {
-        distinguishCancelAndClose: true,
-        confirmButtonText: '确认',
-        cancelButtonText: '取消'
+    // 查看课程学生 TODO
+    showCourseStudents(row){
+      console.log(row,"row")
+      this.isDialogVisiable = true
+      //根据 课程表 id 查找学生列表
+      requestHelper.post("/student/getArrayStuData",{
+        stuIds:row.stu_IDs
+      }).then(res=>{
+        console.log(res.data)
+        // 展示学生列表
+        let stuItems = res.data
+        this.courseStudentLists = stuItems
       })
-          .then(() => {
-            requestHelper.post("/course/delete/one",{cid:cid}).then(res=>{
-                this.$message({
-                  type: 'info',
-                  message: res.message
-                });
-                this.load();
-            })
-          })
-          .catch(action => {
-            if(action === 'cancel'){
-              this.$message({
-                type: 'info',
-                message:'已取消'
-              })
-            }
-          });
+      // 返回前端改课程的学生信息
+    },
+    /**
+     *  根据学生id查看课表
+     */
+    showStudentCourseTable(row){
+        requestHelper.get("/student/get_classes_by_id?id="+row.stu_ID).then(res=>{
+          console.log(res.data)
+          this.isDialogStuCourseVisiable = true
+          this.dialogStuCourseData = transStu(res.data)
+        })
+    },
+    /**
+     * 更新当前的showlist  分页
+     */
+    updateshowList(showTableData){
+      console.log("showTableData",showTableData)
+        this.showTableData = showTableData
     }
   },
   data() {
     return {
       tableData: [],
-      isOpenEidt:false, //是否显示编辑数据
-      user : JSON.parse(localStorage.getItem(myConst.LOCAL_ITEM_KEY)) || {}, //获取token
+      showTableData:[],
+      courseStudentLists:[],// 学生列表
+      // isShowCourse:false, //是否显示编辑数据
+      isDialogVisiable:false, //是否显示弹出框
+      isDialogStuCourseVisiable : false,//学生课表弹出
+      dialogStuCourseData :[], //学生课表信息
     }
   },
   mounted() {

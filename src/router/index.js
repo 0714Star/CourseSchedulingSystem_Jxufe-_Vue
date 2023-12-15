@@ -100,7 +100,7 @@ const routes = [
                 meta:{
                     title:"教师表"
                 },
-                component:()=>import("../components/Manage/TeacherTable.vue")
+                component:()=>import("@/components/Manage/CourseTable/TeacherTable.vue")
             },
             {   //学生表
                 path:"stuTable",
@@ -108,7 +108,7 @@ const routes = [
                 meta:{
                     title:"学生表"
                 },
-                component:()=>import("../components/Manage/StuTable.vue")
+                component:()=>import("@/components/Manage/CourseTable/StuTable.vue")
             },
             {   //班级表
                 path:"classTable",
@@ -116,7 +116,7 @@ const routes = [
                 meta:{
                     title:"班级表"
                 },
-                component:()=>import("../components/Manage/ClassTable.vue")
+                component:()=>import("@/components/Manage/CourseTable/ClassTable.vue")
             },
             {   //课程信息
                 path:"courseData",

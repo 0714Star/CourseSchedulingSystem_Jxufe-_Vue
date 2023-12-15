@@ -132,7 +132,6 @@ export default {
               this.$router.push(myConst.myroutes.home)//路由到个人中心界面
               this.$message({ message: res.message, type: 'success' });
             } else {
-
               console.log("loginERROR:" + res.data);
               this.$message({ message: res.message || res.msg, type: 'error' })
             }

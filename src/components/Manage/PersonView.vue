@@ -153,7 +153,7 @@ export default {
 
           //更新服务端 用户信息
           requestHelper.put('/user/update',this.user).then(res=>{
-            if(res.code==="200"){
+            if(res.code==="200" || res.code === 200){
               this.$message({type:"success",message:"上传成功"})
               //刷新本地 信息
               localStorage.setItem(myConst.LOCAL_ITEM_KEY,JSON.stringify(this.user));
@@ -167,14 +167,14 @@ export default {
       })
     },
     handleAvatarSuccess(response,file,fileList){
-      if(response.code === "200")
+      if(response.code === "200" || response.code === 200)
       {
+        console.log("resData",response.data)
         this.user.avatar = response.data;
       }
     }
   }
 }
-
 </script>
 
 <style scoped>

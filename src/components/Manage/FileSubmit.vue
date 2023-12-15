@@ -42,6 +42,7 @@ export default {
 <template>
 <div>
 <!-- "http://localhost:8080/file/upload" -->
+
   <el-upload
       ref="upload"
       :action="'http://'+this.$baseUrl+'/file/upload'"

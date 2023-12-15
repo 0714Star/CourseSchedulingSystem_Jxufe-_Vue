@@ -22,7 +22,7 @@ export default {
   },
   methods:{
     openDialog(row,putUrl){
-      this.editData = JSON.parse(JSON.stringify(row))
+      this.editData = JSON.parse(JSON.stringify(row))//深拷贝
       this.putUrl = putUrl
       this.visibleEdit_Son = true;
     },
